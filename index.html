@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewsHub - 最新资讯平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#FF7D00',
+            dark: '#1D2129',
+            light: '#F7F8FA',
+            'gray-light': '#E5E6EB',
+            'gray-medium': '#C9CDD4',
+            'gray-dark': '#86909C'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-balance {
+        text-wrap: balance;
+      }
+      .news-card-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+      }
+      .news-card-shadow-hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      .nav-shadow {
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      .animate-slide-up {
+        animation: slideUp 0.6s ease-out;
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-light text-dark antialiased">
+  <!-- 顶部通知栏 -->
+  <div class="bg-primary text-white py-2 px-4 md:px-8 text-sm">
+    <div class="container mx-auto flex justify-between items-center">
+      <p>📢 关注我们获取每日头条新闻推送</p>
+      <a href="#subscribe" class="font-medium hover:underline">立即订阅</a>
+    </div>
+  </div>
+
+  <!-- 导航栏 -->
+  <header id="navbar" class="fixed w-full top-0 left-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-sm">
+    <div class="container mx-auto px-4 md:px-8">
+      <div class="flex items-center justify-between h-16 md:h-20">
+        <!-- 网站Logo -->
+        <a href="#" class="flex items-center space-x-2">
+          <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white text-2xl font-bold">N</div>
+          <span class="text-xl md:text-2xl font-bold text-dark">NewsHub</span>
+        </a>
+        
+        <!-- 桌面导航 -->
+        <nav class="hidden md:flex items-center space-x-8">
+          <a href="#" class="font-medium text-primary border-b-2 border-primary pb-1">首页</a>
+          <a href="#" class="font-medium text-dark hover:text-primary transition-colors">国内</a>
+          <a href="#" class="font-medium text-dark hover:text-primary transition-colors">国际</a>
+          <a href="#" class="font-medium text-dark hover:text-primary transition-colors">财经</a>
+          <a href="#" class="font-medium text-dark hover:text-primary transition-colors">科技</a>
+          <a href="#" class="font-medium text-dark hover:text-primary transition-colors">娱乐</a>
+          <a href="#" class="font-medium text-dark hover:text-primary transition-colors">体育</a>
+        </nav>
+        
+        <!-- 右侧功能区 -->
+        <div class="flex items-center space-x-4">
+          <button id="searchBtn" class="p-2 rounded-full hover:bg-gray-light transition-colors">
+            <i class="fa fa-search text-dark"></i>
+          </button>
+          <button class="p-2 rounded-full hover:bg-gray-light transition-colors md:hidden" id="mobileMenuBtn">
+            <i class="fa fa-bars text-dark"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-light animate-fade-in">
+      <div class="container mx-auto px-4 py-3 space-y-3">
+        <a href="#" class="block py-2 font-medium text-primary">首页</a>
+        <a href="#" class="block py-2 font-medium text-dark hover:text-primary transition-colors">国内</a>
+        <a href="#" class="block py-2 font-medium text-dark hover:text-primary transition-colors">国际</a>
+        <a href="#" class="block py-2 font-medium text-dark hover:text-primary transition-colors">财经</a>
+        <a href="#" class="block py-2 font-medium text-dark hover:text-primary transition-colors">科技</a>
+        <a href="#" class="block py-2 font-medium text-dark hover:text-primary transition-colors">娱乐</a>
+        <a href="#" class="block py-2 font-medium text-dark hover:text-primary transition-colors">体育</a>
+      </div>
+    </div>
+    
+    <!-- 搜索框 -->
+    <div id="searchBox" class="md:hidden hidden bg-white border-t border-gray-light py-4 px-4 animate-fade-in">
+      <div class="relative">
+        <input type="text" placeholder="搜索新闻..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-light focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+        <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-dark"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 pt-24 md:pt-28 pb-16">
+    <!-- 头条新闻 -->
+    <section class="mb-12 animate-slide-up">
+      <a href="news/onecx.html" class="block bg-white rounded-xl overflow-hidden news-card-shadow hover:news-card-shadow-hover transition-all duration-300 animate-slide-up" style="animation-delay: 0.3s">
+      <div class="relative rounded-xl overflow-hidden news-card-shadow group">
+        <img src="img/1.webp" alt="头条新闻" class="w-full h-[300px] md:h-[400px] object-cover transition-transform duration-700 group-hover:scale-105">
+        <div class="absolute inset-0 bg-gradient-to-t from-dark/80 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+          <span class="inline-block px-3 py-1 bg-secondary text-white text-sm font-medium rounded-full mb-3">头条</span>
+          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3">“山水梦行"再出发 武科大学子以青春行动迎接党的生日</h1>
+          <p class="text-white/80 mb-4 max-w-2xl">在党的生日之际，武汉科技大学资源与环境工程学院“山水梦行”暑期社会实践团队于7月1日再启征程，奔赴湖北省宜昌市，聚焦磷石膏资源化利用与长江水资源保护，开展专项调研实践活动。</p>
+          <div class="flex items-center text-white/70 text-sm">
+            <span>社会新闻</span>
+            <span class="mx-2">•</span>
+            <span>2小时前</span>
+          </div>
+        </div>
+      </div>
+      </a>
+    </section>
+
+    <!-- 新闻分类导航 -->
+    <section class="mb-10 overflow-x-auto pb-2 animate-slide-up" style="animation-delay: 0.1s">
+      <div class="flex space-x-3 min-w-max">
+        <button class="px-5 py-2 bg-primary text-white rounded-full font-medium">全部</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">国内</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">国际</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">财经</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">科技</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">娱乐</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">体育</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">健康</button>
+        <button class="px-5 py-2 bg-white text-dark rounded-full font-medium hover:bg-gray-light transition-colors">教育</button>
+      </div>
+    </section>
+
+    <!-- 双栏布局：左侧主要新闻，右侧热门新闻 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- 左侧主要新闻 -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- 主要新闻卡片 - 大尺寸 -->
+        <a href="news-detail.html" class="block bg-white rounded-xl overflow-hidden news-card-shadow hover:news-card-shadow-hover transition-all duration-300 animate-slide-up" style="animation-delay: 0.2s">
+          <div class="flex flex-col md:flex-row">
+            <div class="md:w-1/2">
+              <img src="https://picsum.photos/id/1015/600/400" alt="科技新闻" class="w-full h-48 md:h-full object-cover">
+            </div>
+            <div class="p-6 md:w-1/2">
+              <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full mb-3">科技</span>
+              <h2 class="text-xl md:text-2xl font-bold mb-3 hover:text-primary transition-colors">新一代人工智能技术突破，机器学习效率提升40%</h2>
+              <p class="text-gray-dark mb-4 line-clamp-3">研究人员开发出一种新的机器学习架构，通过优化神经网络结构和训练算法，使AI模型的训练速度提升了40%，同时减少了能耗。这项技术有望在自动驾驶、医疗诊断等领域得到广泛应用。</p>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center text-sm text-gray-dark">
+                  <img src="https://picsum.photos/id/1005/40/40" alt="作者头像" class="w-8 h-8 rounded-full mr-2">
+                  <span>李明</span>
+                  <span class="mx-2">•</span>
+                  <span>5小时前</span>
+                </div>
+                <div class="flex items-center text-gray-dark">
+                  <i class="fa fa-eye mr-1"></i>
+                  <span>1.2万</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <!-- 主要新闻卡片 - 中等尺寸 (2列) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <a href="news-detail2.html" class="block bg-white rounded-xl overflow-hidden news-card-shadow hover:news-card-shadow-hover transition-all duration-300 animate-slide-up" style="animation-delay: 0.3s">
+            <div class="relative">
+              <img src="https://picsum.photos/id/1039/400/300" alt="财经新闻" class="w-full h-40 object-cover">
+              <span class="absolute top-3 left-3 px-2 py-1 bg-secondary text-white text-xs font-medium rounded">财经</span>
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold mb-2 hover:text-primary transition-colors">央行宣布下调存款准备金率，释放长期资金5000亿元</h3>
+              <p class="text-gray-dark text-sm mb-3 line-clamp-2">中国人民银行决定于2025年7月15日下调金融机构存款准备金率0.5个百分点，预计将释放长期资金约5000亿元，旨在支持实体经济发展，促进综合融资成本稳中有降。</p>
+              <div class="flex items-center justify-between text-xs text-gray-dark">
+                <span>3小时前</span>
+                <span class="flex items-center"><i class="fa fa-comment-o mr-1"></i> 245</span>
+              </div>
+            </div>
+          </a>
+          
+          <article class="bg-white rounded-xl overflow-hidden news-card-shadow hover:news-card-shadow-hover transition-all duration-300 animate-slide-up" style="animation-delay: 0.4s">
+            <div class="relative">
+              <img src="https://picsum.photos/id/1019/400/300" alt="体育新闻" class="w-full h-40 object-cover">
+              <span class="absolute top-3 left-3 px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">体育</span>
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold mb-2 hover:text-primary transition-colors">奥运会中国代表团再获3金2银，暂居奖牌榜首位</h3>
+              <p class="text-gray-dark text-sm mb-3 line-clamp-2">在今天的奥运会比赛中，中国运动员在跳水、举重和乒乓球项目中表现出色，再获3金2银，目前以18金12银8铜的成绩暂居奖牌榜第一位，创历史最佳开局。</p>
+              <div class="flex items-center justify-between text-xs text-gray-dark">
+                <span>4小时前</span>
+                <span class="flex items-center"><i class="fa fa-comment-o mr-1"></i> 512</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- 主要新闻卡片 - 小尺寸 (3列) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <article class="bg-white rounded-xl overflow-hidden news-card-shadow hover:news-card-shadow-hover transition-all duration-300 animate-slide-up" style="animation-delay: 0.5s">
+            <div class="relative">
+              <img src="https://picsum.photos/id/1062/300/200" alt="娱乐新闻" class="w-full h-32 object-cover">
+              <span class="absolute top-3 left-3 px-2 py-1 bg-pink-500/10 text-pink-500 text-xs font-medium rounded">娱乐</span>
+            </div>
+            <div class="p-3">
+              <h3 class="text-base font-medium mb-2 hover:text-primary transition-colors">年度票房冠军影片将拍摄续集，原班人马回归</h3>
+              <div class="flex items-center justify-between text-xs text-gray-dark">
+                <span>6小时前</span>
+                <span class="flex items-center"><i class="fa fa-heart-o mr-1"></i> 892</span>
+              </div>
+            </div>
+          </article>
+          
+          <article class="bg-white rounded-xl overflow-hidden news-card-shadow hover:news-card-shadow-hover transition-all duration-300 animate-slide-up" style="animation-delay: 0.6s">
+            <div class="relative">
+              <img src="https://picsum.photos/id/1071/300/200" alt="健康新闻" class="w-full h-32 object-cover">
+              <span class="absolute top-3 left-3 px-2 py-1 bg-green-500/10 text-green-500 text-xs font-medium rounded">健康</span>
+            </div>
+            <div class="p-3">
+              <h3 class="text-base font-medium mb-2 hover:text-primary transition-colors">最新研究：每天15分钟冥想可显著改善心理健康</h3>
+              <div class="flex items-center justify-between text-xs text-gray-dark">
+                <span>7小时前</span>
+                <span class="flex items-center"><i class="fa fa-heart-o mr-1"></i> 673</span>
+              </div>
+            </div>
+          </article>
+          
+          <article class="bg-white rounded-xl overflow-hidden news-card-shadow hover:news-card-shadow-hover transition-all duration-300 animate-slide-up" style="animation-delay: 0.7s">
+            <div class="relative">
+              <img src="https://picsum.photos/id/1082/300/200" alt="教育新闻" class="w-full h-32 object-cover">
+              <span class="absolute top-3 left-3 px-2 py-1 bg-purple-500/10 text-purple-500 text-xs font-medium rounded">教育</span>
+            </div>
+            <div class="p-3">
+              <h3 class="text-base font-medium mb-2 hover:text-primary transition-colors">教育部推出新政策，加强中小学科技创新教育</h3>
+              <div class="flex items-center justify-between text-xs text-gray-dark">
+                <span>8小时前</span>
+                <span class="flex items-center"><i class="fa fa-heart-o mr-1"></i> 456</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- 加载更多按钮 -->
+        <div class="text-center mt-10 animate-slide-up" style="animation-delay: 0.8s">
+          <button class="px-8 py-3 bg-white border border-primary text-primary font-medium rounded-full hover:bg-primary hover:text-white transition-colors duration-300 flex items-center justify-center mx-auto">
+            <span>加载更多新闻</span>
+            <i class="fa fa-angle-down ml-2"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 右侧边栏 -->
+      <div class="space-y-8">
+        <!-- 热门新闻 -->
+        <section class="bg-white rounded-xl p-6 news-card-shadow animate-slide-up" style="animation-delay: 0.2s">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold">热门新闻</h2>
+            <a href="#" class="text-primary text-sm font-medium hover:underline">更多 <i class="fa fa-angle-right ml-1"></i></a>
+          </div>
+          
+          <div class="space-y-5">
+            <div class="flex">
+              <div class="w-16 h-16 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                <img src="https://picsum.photos/id/1059/100/100" alt="热门新闻" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h3 class="text-base font-medium mb-1 hover:text-primary transition-colors">城市垃圾分类新政策即将实施，违者将面临罚款</h3>
+                <p class="text-xs text-gray-dark">2小时前</p>
+              </div>
+            </div>
+            
+            <div class="flex">
+              <div class="w-16 h-16 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                <img src="https://picsum.photos/id/1067/100/100" alt="热门新闻" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h3 class="text-base font-medium mb-1 hover:text-primary transition-colors">新能源汽车销量再创新高，市场渗透率突破30%</h3>
+                <p class="text-xs text-gray-dark">3小时前</p>
+              </div>
+            </div>
+            
+            <div class="flex">
+              <div class="w-16 h-16 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                <img src="https://picsum.photos/id/1074/100/100" alt="热门新闻" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h3 class="text-base font-medium mb-1 hover:text-primary transition-colors">研究显示：每天喝一杯咖啡可降低多种疾病风险</h3>
+                <p class="text-xs text-gray-dark">5小时前</p>
+              </div>
+            </div>
+            
+            <div class="flex">
+              <div class="w-16 h-16 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                <img src="https://picsum.photos/id/1080/100/100" alt="热门新闻" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h3 class="text-base font-medium mb-1 hover:text-primary transition-colors">全国多地迎来强降雨，气象部门发布橙色预警</h3>
+                <p class="text-xs text-gray-dark">6小时前</p>
+              </div>
+            </div>
+            
+            <div class="flex">
+              <div class="w-16 h-16 rounded-lg overflow-hidden mr-4 flex-shrink-0">
+                <img src="https://picsum.photos/id/1083/100/100" alt="热门新闻" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h3 class="text-base font-medium mb-1 hover:text-primary transition-colors">国家航天局公布最新火星探测数据，发现液态水痕迹</h3>
+                <p class="text-xs text-gray-dark">8小时前</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- 订阅区域 -->
+        <section id="subscribe" class="bg-gradient-to-br from-primary to-primary/80 rounded-xl p-6 text-white news-card-shadow animate-slide-up" style="animation-delay: 0.4s">
+          <h2 class="text-xl font-bold mb-3">订阅新闻简报</h2>
+          <p class="mb-6 opacity-90">每周获取精选新闻，直接发送到您的邮箱</p>
+          <form class="space-y-3">
+            <input type="email" placeholder="您的邮箱地址" class="w-full px-4 py-2 rounded-lg text-dark focus:outline-none">
+            <button type="submit" class="w-full py-2 bg-white text-primary font-medium rounded-lg hover:bg-gray-light transition-colors">
+              立即订阅
+            </button>
+          </form>
+          <p class="text-xs opacity-80 mt-3">我们尊重您的隐私，绝不会分享您的信息</p>
+        </section>
+        
+        <!-- 热门标签 -->
+        <section class="bg-white rounded-xl p-6 news-card-shadow animate-slide-up" style="animation-delay: 0.6s">
+          <h2 class="text-xl font-bold mb-6">热门标签</h2>
+          <div class="flex flex-wrap gap-3">
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">经济复苏</a>
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">人工智能</a>
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">奥运会</a>
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">新能源汽车</a>
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">垃圾分类</a>
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">火星探测</a>
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">金融政策</a>
+            <a href="#" class="px-4 py-2 bg-gray-light text-dark rounded-full text-sm hover:bg-primary hover:text-white transition-colors">健康生活</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white pt-16 pb-8">
+    <div class="container mx-auto px-4 md:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div>
+          <div class="flex items-center space-x-2 mb-6">
+            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white text-2xl font-bold">N</div>
+            <span class="text-xl font-bold">NewsHub</span>
+          </div>
+          <p class="text-gray-light mb-6">提供最新、最全面的新闻资讯，让您随时随地了解天下事。</p>
+          <div class="flex space-x-4">
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-dark flex items-center justify-center hover:bg-primary transition-colors">
+              <i class="fa fa-facebook"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-dark flex items-center justify-center hover:bg-primary transition-colors">
+              <i class="fa fa-twitter"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-dark flex items-center justify-center hover:bg-primary transition-colors">
+              <i class="fa fa-instagram"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-gray-dark flex items-center justify-center hover:bg-primary transition-colors">
+              <i class="fa fa-youtube-play"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-bold mb-6">快速链接</h3>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">首页</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">国内新闻</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">国际新闻</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">财经资讯</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">科技前沿</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">娱乐八卦</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-bold mb-6">关于我们</h3>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">公司简介</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">编辑团队</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">加入我们</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">联系方式</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">隐私政策</a></li>
+            <li><a href="#" class="text-gray-light hover:text-white transition-colors">用户协议</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-bold mb-6">联系我们</h3>
+          <ul class="space-y-3">
+            <li class="flex items-start">
+              <i class="fa fa-map-marker mt-1 mr-3 text-gray-light"></i>
+              <span class="text-gray-light">北京市朝阳区新闻大厦15层</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-phone mr-3 text-gray-light"></i>
+              <span class="text-gray-light">+86 10 8888 7777</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-envelope mr-3 text-gray-light"></i>
+              <span class="text-gray-light">contact@newshub.com</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-clock-o mr-3 text-gray-light"></i>
+              <span class="text-gray-light">周一至周日 8:00-22:00</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-dark/30 pt-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <p class="text-gray-light text-sm mb-4 md:mb-0">© 2025 NewsHub. 保留所有权利。</p>
+          <div class="flex space-x-6">
+            <a href="#" class="text-gray-light text-sm hover:text-white transition-colors">隐私政策</a>
+            <a href="#" class="text-gray-light text-sm hover:text-white transition-colors">使用条款</a>
+            <a href="#" class="text-gray-light text-sm hover:text-white transition-colors">Cookie政策</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 返回顶部按钮 -->
+  <button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-primary text-white shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 hover:bg-primary/90">
+    <i class="fa fa-angle-up"></i>
+  </button>
+
+  <!-- JavaScript -->
+  <script>
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    const backToTop = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 50) {
+        navbar.classList.add('nav-shadow', 'py-2');
+        navbar.classList.remove('py-4');
+        backToTop.classList.remove('opacity-0', 'invisible');
+        backToTop.classList.add('opacity-100', 'visible');
+      } else {
+        navbar.classList.remove('nav-shadow', 'py-2');
+        navbar.classList.add('py-4');
+        backToTop.classList.add('opacity-0', 'invisible');
+        backToTop.classList.remove('opacity-100', 'visible');
+      }
+    });
+    
+    // 移动端菜单
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const searchBtn = document.getElementById('searchBtn');
+    const searchBox = document.getElementById('searchBox');
+    
+    mobileMenuBtn.addEventListener('click', function() {
+      mobileMenu.classList.toggle('hidden');
+    });
+    
+    searchBtn.addEventListener('click', function() {
+      searchBox.classList.toggle('hidden');
+      mobileMenu.classList.add('hidden');
+    });
+    
+    // 返回顶部
+    backToTop.addEventListener('click', function() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+    
+    // 图片懒加载
+    document.addEventListener("DOMContentLoaded", function() {
+      const lazyImages = [].slice.call(document.querySelectorAll("img"));
+      
+      if ("IntersectionObserver" in window) {
+        let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              let lazyImage = entry.target;
+              lazyImage.src = lazyImage.dataset.src || lazyImage.src;
+              lazyImageObserver.unobserve(lazyImage);
+            }
+          });
+        });
+        
+        lazyImages.forEach(function(lazyImage) {
+          lazyImageObserver.observe(lazyImage);
+        });
+      }
+    });
+  </script>
+</body>
+</html>  
